@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'questionBrain.dart';
 
 void main() => runApp(const MyApp());
 
@@ -24,42 +26,59 @@ class MyAppstful extends StatefulWidget {
   @override
   State<MyAppstful> createState() => _MyAppstfulState();
 }
-/*
-question1: 'You can lead a cow down stairs but not up stairs.', false,
-question2: 'Approximately one quarter of human bones are in the feet.', true,
-question3: 'A slug\'s blood is green.', true,
-*/
 
 class _MyAppstfulState extends State<MyAppstful> {
-  List<String> questionTexts = [
-    'You can lead a cow down stairs but not up stairs.',
-    'Approximately one quarter of human bones are in the feet.',
-    'A slug\'s blood is green.',
-  ];
+  QuestionBrain questionBrain = QuestionBrain();
+  void onPressAction(String textToPrint) {
+    print('button $textToPrint pressed');
 
-  int idxTrack = 0;
-
-  List<String> rightOrWrong = ['false', 'true', 'true'];
+    setState(() {
+      if (questionBrain.isFinished() == true) {
+        Alert(
+          context: context,
+          type: AlertType.success,
+          title: 'Finished!',
+          desc:
+              'You\'ve reached the end of the quiz. Tap on x to see your final result',
+          buttons: [
+            DialogButton(
+              child: Text(
+                'Restart',
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {
+                  questionBrain.reset();
+                  scoreKeeper = [];
+                });
+              },
+              width: 120,
+            )
+          ],
+        ).show();
+      } else {
+        if (questionBrain.getQuestionAnswer() == textToPrint) {
+          scoreKeeper.add(
+            Icon(
+              Icons.check,
+              color: Colors.green,
+            ),
+          );
+        } else {
+          scoreKeeper.add(
+            Icon(
+              Icons.close,
+              color: Colors.red,
+            ),
+          );
+        }
+      }
+    });
+    questionBrain.nextQuestion();
+  }
 
   List<Icon> scoreKeeper = [];
-
-  void onPressAction({String textToPrint = 'true'}) {
-    print('button $textToPrint pressed');
-    if (rightOrWrong[idxTrack] == textToPrint) {
-      print('right!');
-    } else {
-      print('wrong.');
-    }
-    idxTrack++;
-    setState(() {
-      // scoreKeeper.add(
-      //   Icon(
-      //     Icons.add,
-      //     color: Colors.blue,
-      //   ),
-      // );
-    });
-  }
 
   Widget buildButton(
       {Color colorOfText = Colors.white,
@@ -75,7 +94,7 @@ class _MyAppstfulState extends State<MyAppstful> {
         color: colorOfButton,
         child: TextButton(
           onPressed: () {
-            onPressAction(textToPrint: textToPrint);
+            onPressAction(textToPrint);
           },
           child: Text(
             textToShow,
@@ -101,7 +120,7 @@ class _MyAppstfulState extends State<MyAppstful> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                questionTexts[idxTrack],
+                questionBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
